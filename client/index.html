@@ -1,0 +1,30 @@
+<!-- ./client/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <p id="users">Current users:</p>
+    <button onClick="startGame()">Start Game</button>
+
+    <script src="./socket.io/socket.io.js"></script>
+    <script>
+      const socket = io("http://localhost:3000");
+
+      const username = prompt("Please enter a username:");
+      socket.emit("username", username);
+
+      function startGame() {
+        socket.emit("start");
+      }
+
+      socket.on("users", (users) => {
+          document.getElementById("users").textContent = "Current Users: " + users;
+      })
+    </script>
+  </body>
+</html>
