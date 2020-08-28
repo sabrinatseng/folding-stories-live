@@ -5,13 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var path_1 = __importDefault(require("path"));
-var http_1 = __importDefault(require("http"));
-var socket_io_1 = __importDefault(require("socket.io"));
 var constants_1 = require("./config/constants");
 var app = express_1.default();
 app.use(express_1.default.static(__dirname + "/client"));
-var server = new http_1.default.Server(app);
-var io = socket_io_1.default(server);
+var http = require("http").Server(app);
+var io = require("socket.io")(http);
 app.get('/', function (_req, res) {
     res.sendFile(path_1.default.resolve("./client/index.html"));
 });
@@ -33,12 +31,7 @@ io.on("connect", function (socket) {
             users.splice(index, 1);
         console.log(socket.username + " left the game.");
     });
-    // for testing purposes
-    socket.on("echo", function (message) {
-        socket.emit("echo", message);
-    });
 });
-server.listen(constants_1.PORT, function () {
+var server = exports.server = http.listen(constants_1.PORT, function () {
     console.log("Server is listening on port " + constants_1.PORT);
 });
-exports.close = function () { return server.close(); };

@@ -1,12 +1,14 @@
 import express from 'express';
 import path from 'path';
+import http from 'http';
+import socketio from 'socket.io';
 import { PORT } from './config/constants';
 
 const app = express();
 app.use(express.static(__dirname + "/client"));
 
-let http = require("http").Server(app);
-let io = require("socket.io")(http);
+let server = new http.Server(app);
+let io = socketio(server);
 
 app.get('/', (_req, res) => {
     res.sendFile(path.resolve("./client/index.html"))
@@ -33,8 +35,15 @@ io.on("connect", function(socket: any) {
         if (index > -1) users.splice(index, 1);
         console.log(`${socket.username} left the game.`);
     });
+
+    // for testing purposes
+    socket.on("echo", (message: string) => {
+        socket.emit("echo", message);
+    })
 });
 
-const server = http.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
+
+exports.close = () => server.close();
