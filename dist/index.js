@@ -18,24 +18,26 @@ app.get('/', function (_req, res) {
 var users = [];
 io.on("connect", function (socket) {
     console.log("a user connected");
-    socket.on("username", function (username) {
+    socket.on("username" /* Username */, function (username) {
         socket.username = username;
         users.push(username);
         console.log(username + " joined the game.");
-        socket.emit("users", users.toString());
+        io.emit("users" /* Users */, users.toString());
     });
-    socket.on("start", function () {
+    socket.on("start_game" /* StartGame */, function () {
         console.log("Starting game with " + users);
     });
-    socket.on("disconnect", function () {
+    socket.on("disconnect" /* Disconnect */, function () {
         var index = users.indexOf(socket.username);
-        if (index > -1)
+        if (index > -1) {
             users.splice(index, 1);
-        console.log(socket.username + " left the game.");
+            io.emit("users" /* Users */, users.toString());
+            console.log(socket.username + " left the game.");
+        }
     });
     // for testing purposes
-    socket.on("echo", function (message) {
-        socket.emit("echo", message);
+    socket.on("echo" /* Echo */, function (message) {
+        socket.emit("echo" /* Echo */, message);
     });
 });
 server.listen(constants_1.PORT, function () {
