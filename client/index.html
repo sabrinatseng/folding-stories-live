@@ -8,8 +8,9 @@
     <title>Document</title>
   </head>
   <body>
-    <p id="users">Current users:</p>
+    <p id="users">Current Users:</p>
     <button onClick="startGame()">Start Game</button>
+    <p id="game_state">Game State:</p>
 
     <script src="./socket.io/socket.io.js"></script>
     <script>
@@ -19,11 +20,16 @@
       socket.emit("username", username);
 
       function startGame() {
-        socket.emit("start");
+        socket.emit("start_game");
       }
 
       socket.on("users", (users) => {
-          document.getElementById("users").textContent = "Current Users: " + users;
+        document.getElementById("users").textContent = "Current Users: " + users;
+      })
+
+      socket.on("game_state", (state) => {
+        console.log("game state: " + state);
+        document.getElementById("game_state").textContent = "Game State: " + state;
       })
     </script>
   </body>
