@@ -19,6 +19,7 @@ app.get('/', function (_req, res) {
 // TODO use rooms
 // also move this out to a db or something
 var users = [];
+var game = null;
 io.on("connect", function (socket) {
     console.log("a user connected");
     socket.on("username" /* Username */, function (username) {
@@ -29,7 +30,13 @@ io.on("connect", function (socket) {
     });
     socket.on("start_game" /* StartGame */, function () {
         console.log("Starting game with " + users);
-        var game = new game_1.Game(users, constants_1.DEFAULT_NUM_LINES);
+        game = new game_1.Game(users, constants_1.DEFAULT_NUM_LINES);
+        notifyGameState(game);
+    });
+    socket.on("write_line" /* WriteLine */, function (line) {
+        var username = socket.username;
+        console.log("Received line " + line + " from " + username);
+        game === null || game === void 0 ? void 0 : game.writeLine(username, line);
         notifyGameState(game);
     });
     socket.on("disconnect" /* Disconnect */, function () {
@@ -49,6 +56,8 @@ server.listen(constants_1.PORT, function () {
     console.log("Server is listening on port " + constants_1.PORT);
 });
 function notifyGameState(game) {
+    if (game === null)
+        return;
     console.log("emitting game state");
     var sockets = io.sockets.sockets;
     Object.values(sockets).forEach(function (socket) {

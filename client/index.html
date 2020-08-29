@@ -11,6 +11,8 @@
     <p id="users">Current Users:</p>
     <button onClick="startGame()">Start Game</button>
     <p id="game_state">Game State:</p>
+    <textarea id="input_line" rows="3" cols="100" placeholder="Write the next line of the story here"></textarea>
+    <button onClick="writeLine()">Submit Line</button>
 
     <script src="./socket.io/socket.io.js"></script>
     <script>
@@ -23,6 +25,12 @@
         socket.emit("start_game");
       }
 
+      function writeLine() {
+        let input = document.getElementById("input_line");
+        socket.emit("write_line", input.value);
+        input.value = "";
+      }
+
       socket.on("users", (users) => {
         document.getElementById("users").textContent = "Current Users: " + users;
       })
@@ -31,6 +39,7 @@
         console.log("game state: " + state);
         document.getElementById("game_state").textContent = "Game State: " + state;
       })
+
     </script>
   </body>
 </html>

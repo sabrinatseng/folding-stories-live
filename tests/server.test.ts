@@ -86,12 +86,9 @@ describe('Game Start', () => {
     client.once("connect", function () {
       client2.once("connect", function () {
         // both clients are connected, both clients should receive notification of game start
-        client.once("game_state", function (message: string) {
-        });
+        client.once("game_state", function (message: string) {});
 
         client2.once("game_state", function (message: string) {
-          // expect(message).to.be.equal("test_user");
-          console.log("client 2 received");
           client.disconnect();
           client2.disconnect();
           done();

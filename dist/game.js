@@ -10,22 +10,32 @@ var Game = /** @class */ (function () {
         this.num_lines = num_lines;
     }
     Game.prototype.checkEndTurn = function () {
+        var _this = this;
         // check the lengths of each story and if they are correct
         // in the future may optimize using a set (requires ES6)
-        return false;
+        return this.stories.every(function (story) { return story.length() == _this.curr_line + 1; });
     };
     Game.prototype.writeLine = function (user, line) {
         // write a line to the story corresponding to this user
         // also call nextTurn() if all lines have been written this turn
+        var user_idx = this.users.indexOf(user);
+        if (user_idx >= 0) {
+            var story_idx = (user_idx + this.user_0_story_idx) % this.users.length;
+            this.stories[story_idx].writeLine(new Line(user, line));
+            if (this.checkEndTurn())
+                this.nextTurn();
+        }
     };
     Game.prototype.nextTurn = function () {
         // rotate the stories around, increment curr_line, etc
+        this.user_0_story_idx = (this.user_0_story_idx + 1) % this.users.length;
+        this.curr_line++;
     };
     Game.prototype.getDisplayState = function (user) {
         // get info to display for a particular user so that the
         // frontend can be updated
         if (this.users.includes(user)) {
-            return "this is the state string for user " + user;
+            return "currently on round " + (this.curr_line + 1) + ", state for user " + user;
         }
         return null;
     };
@@ -55,7 +65,7 @@ var Story = /** @class */ (function () {
 }());
 exports.Story = Story;
 var Line = /** @class */ (function () {
-    function Line(line, user) {
+    function Line(user, line) {
         this.line = line;
         this.user = user;
     }

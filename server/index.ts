@@ -19,6 +19,7 @@ app.get('/', (_req, res) => {
 // TODO use rooms
 // also move this out to a db or something
 let users: string[] = [];
+let game: Game | null = null;
 
 io.on("connect", function(socket: any) {
     console.log("a user connected");
@@ -32,7 +33,14 @@ io.on("connect", function(socket: any) {
 
     socket.on(EventTypes.StartGame, () => {
         console.log(`Starting game with ${users}`);
-        let game = new Game(users, DEFAULT_NUM_LINES);
+        game = new Game(users, DEFAULT_NUM_LINES);
+        notifyGameState(game);
+    });
+
+    socket.on(EventTypes.WriteLine, (line: string) => {
+        let username = socket.username;
+        console.log(`Received line ${line} from ${username}`);
+        game?.writeLine(username, line);
         notifyGameState(game);
     });
 
@@ -55,7 +63,8 @@ server.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-function notifyGameState(game: Game) {
+function notifyGameState(game: Game | null) {
+    if (game === null) return;
     console.log("emitting game state");
     let sockets: { [id: string]: any } = io.sockets.sockets;
     Object.values(sockets).forEach(socket => {
