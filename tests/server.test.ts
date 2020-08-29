@@ -15,7 +15,7 @@ after(() => server.close());
 
 describe('Basic Server Echo Test', () => {
   it("echo", function(done) {
-    var client = io.connect(url, options); 
+    let client = io.connect(url, options); 
   
     client.once("connect", function () {
       client.once("echo", function (message: string) {
@@ -34,6 +34,11 @@ describe('Server User Management', () => {
   before(() => {
     client = io.connect(url, options);
     new_client = io.connect(url, options);
+  });
+
+  after(() => {
+    client.disconnect();
+    new_client.disconnect();
   });
 
   it("stores username upon entering", function (done) {
@@ -63,4 +68,39 @@ describe('Server User Management', () => {
       done();
     });
   }); 
+})
+
+describe('Game Start', () => {
+  let client: any, client2: any;
+  before(() => {
+    client = io.connect(url, options);
+    client2 = io.connect(url, options);
+  });
+
+  after(() => {
+    client.disconnect();
+    client2.disconnect();
+  });
+
+  it("notifies all users on game start", function(done) {
+    client.once("connect", function () {
+      client2.once("connect", function () {
+        // both clients are connected, both clients should receive notification of game start
+        client.once("game_state", function (message: string) {
+        });
+
+        client2.once("game_state", function (message: string) {
+          // expect(message).to.be.equal("test_user");
+          console.log("client 2 received");
+          client.disconnect();
+          client2.disconnect();
+          done();
+        });
+  
+        client.emit("username", "test_user_1");
+        client2.emit("username", "test_user_2");
+        client.emit("start_game");
+      });
+    });
+  })
 })
