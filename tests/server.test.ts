@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 
 const io = require('socket.io-client');
-const server = require('../dist/index');
+const server = require('../server/index');
 
 const url = "http://localhost:3000";
 const options = {
@@ -31,9 +31,14 @@ describe('Basic Server Echo Test', () => {
 
 describe('Server User Management', () => {
   let client: any, new_client: any;
-  before(() => {
+  before((done) => {
     client = io.connect(url, options);
-    new_client = io.connect(url, options);
+    client.once("connect", function() {
+      new_client = io.connect(url, options);
+      new_client.once("connect", function() {
+        done();
+      });
+    });
   });
 
   after(() => {
@@ -42,22 +47,18 @@ describe('Server User Management', () => {
   });
 
   it("stores username upon entering", function (done) {
-    client.once("connect", function () {
-      new_client.once("connect", function () {
-        // both clients are connected, both clients should receive users
-        new_client.once("users", function (message: string) {
-          expect(message).to.be.equal("test_user");
-        });
-
-        client.once("users", function (message: string) {
-          expect(message).to.be.equal("test_user");
-          done();
-        });
-  
-        new_client.emit("username", "test_user");
-      });
+    new_client.once("users", function (message: string) {
+      expect(message).to.be.equal("test_user");
     });
+
+    client.once("users", function (message: string) {
+      expect(message).to.be.equal("test_user");
+      done();
+    });
+
+    new_client.emit("username", "test_user");
   });
+
 
   it("removes username upon leaving", function (done) {
     new_client.disconnect();
@@ -72,32 +73,38 @@ describe('Server User Management', () => {
 
 describe('Game Start', () => {
   let client: any, client2: any;
-  before(() => {
+  before((done) => {
     client = io.connect(url, options);
-    client2 = io.connect(url, options);
+    client.once("connect", function() {
+      client2 = io.connect(url, options);
+      client2.once("connect", function() {
+        done();
+      });
+    });
   });
 
-  after(() => {
+  after((done) => {
     client.disconnect();
     client2.disconnect();
+    done()
   });
 
   it("notifies all users on game start", function(done) {
-    client.once("connect", function () {
-      client2.once("connect", function () {
-        // both clients are connected, both clients should receive notification of game start
-        client.once("game_state", function (message: string) {});
+    client.once("game_state", function (message: string) {});
 
-        client2.once("game_state", function (message: string) {
-          client.disconnect();
-          client2.disconnect();
-          done();
-        });
-  
-        client.emit("username", "test_user_1");
-        client2.emit("username", "test_user_2");
-        client.emit("start_game");
-      });
+    client2.once("game_state", function (message: string) {
+      client.disconnect();
+      client2.disconnect();
+      done();
     });
+
+    client.emit("username", "test_user_1");
+    // start game once both usernames are received
+    client.once("users", function() {
+      client2.emit("username", "test_user_2");
+      client2.once("users", function() {
+        client.emit("start_game");
+      })
+    })
   })
 })
