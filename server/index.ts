@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import http from 'http';
 import socketio from 'socket.io';
-import { DEFAULT_NUM_LINES, PORT } from './config/constants';
+import { DEFAULT_ROUNDS, PORT } from './config/constants';
 import { EventTypes } from './types';
 import { Game } from './game';
 
@@ -33,7 +33,7 @@ io.on("connect", function(socket: any) {
 
     socket.on(EventTypes.StartGame, () => {
         console.log(`Starting game with ${users}`);
-        game = new Game(users, DEFAULT_NUM_LINES);
+        game = new Game(users, DEFAULT_ROUNDS);
         notifyGameState(game);
     });
 

@@ -30,7 +30,7 @@ io.on("connect", function (socket) {
     });
     socket.on("start_game" /* StartGame */, function () {
         console.log("Starting game with " + users);
-        game = new game_1.Game(users, constants_1.DEFAULT_NUM_LINES);
+        game = new game_1.Game(users, constants_1.DEFAULT_ROUNDS);
         notifyGameState(game);
     });
     socket.on("write_line" /* WriteLine */, function (line) {

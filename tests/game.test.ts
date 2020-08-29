@@ -16,7 +16,7 @@ describe("Start Game", () => {
     })
 })
 
-describe("Gameplay", () => {
+describe("Basic Gameplay", () => {
     let users = ["test_user_1", "test_user_2"];
     let game = new Game(users, 2); 
 
@@ -63,3 +63,18 @@ describe("Gameplay", () => {
     })
 })
 
+describe("Gameplay Edge Cases", () => {
+    let users = ["test_user_1", "test_user_2"];
+    let game = new Game(users, 2); 
+
+    it("only writes the first line if a user tries to submit multiple lines in a round", function(done) {
+        game.writeLine("test_user_1", "hello");
+        game.writeLine("test_user_1", "hello_again");
+        expect(game.getStories()[0].length()).to.be.equal(1);
+        expect(game.getStories()[0].getLine(0)).to.be.eql({
+            user: "test_user_1",
+            line: "hello"
+        });
+        done();
+    })
+})

@@ -10,9 +10,13 @@
   <body>
     <p id="users">Current Users:</p>
     <button onClick="startGame()">Start Game</button>
-    <p id="game_state">Game State:</p>
-    <textarea id="input_line" rows="3" cols="100" placeholder="Write the next line of the story here"></textarea>
+    <p id="round"></p>
+    <p id="prev_line"></p>
+    <div>
+      <textarea id="input_line" rows="3" cols="100" placeholder="Write the next line of the story here"></textarea>
+    </div>
     <button onClick="writeLine()">Submit Line</button>
+    <p id="waiting"></p>
     <p id="stories"></p>
 
     <script src="./socket.io/socket.io.js"></script>
@@ -39,7 +43,22 @@
       socket.on("game_state", (state_json) => {
         let state = JSON.parse(state_json);
         console.log("state: " + state.debug);
-        document.getElementById("game_state").textContent = state.display;
+
+        if (state.ended) {
+          document.getElementById("round").textContent = `Game ended. Check out your stories below!`;
+        } else {
+          document.getElementById("round").textContent = `Round ${state.round} of ${state.totalRounds}`;
+        }
+
+        if (state.prevLine != null) {
+          document.getElementById("prev_line").textContent = `Previous line: ${state.prevLine.line}`;
+        }
+        
+        if (state.waiting) {
+          document.getElementById("waiting").textContent = `Waiting for other users to submit lines...`;
+        } else {
+          document.getElementById("waiting").textContent = "";
+        }
       })
 
       socket.on("game_end", (stories_json) => {

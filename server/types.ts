@@ -10,8 +10,12 @@ export const enum EventTypes {
 }
 
 export type UserState = {
+    ended: boolean,
+    round: number,
+    totalRounds: number,
     debug: string,
-    display: string,
+    prevLine: Line | null,
+    waiting: boolean,
 }
 
 export type Line = {

@@ -8,12 +8,12 @@ export class Game {
     ended: boolean = false;
 
     // Game settings
-    num_lines: number;
+    rounds: number;
 
-    constructor(users: string[], num_lines: number) {
+    constructor(users: string[], rounds: number) {
         this.users = users.slice();
         this.stories = Array.from(this.users, _ => new Story());
-        this.num_lines = num_lines;
+        this.rounds = rounds;
     }
 
     gameEnded(): boolean {
@@ -32,12 +32,14 @@ export class Game {
 
     writeLine(user: string, line: string) {
         // write a line to the story corresponding to this user
+        // does nothing if user has already written line for this turn
         // also call nextTurn() if all lines have been written this turn
         if (this.users.includes(user)) {
             let user_idx = this.users.indexOf(user);
             let story_idx = (user_idx + this.curr_line) % this.users.length;
 
-            this.stories[story_idx].writeLine({user, line});
+            if (this.stories[story_idx].length() == this.curr_line)
+                this.stories[story_idx].writeLine({user, line});
 
             if (this.checkEndTurn()) this.nextTurn();
         }
@@ -45,7 +47,7 @@ export class Game {
 
     nextTurn() {
         this.curr_line++;
-        if (this.curr_line == this.num_lines) this.ended = true;
+        if (this.curr_line == this.rounds) this.ended = true;
     }
 
     getState(user: string): UserState {
@@ -53,12 +55,15 @@ export class Game {
         // frontend can be updated
         let user_idx = this.users.indexOf(user);
         let story_idx = (user_idx + this.curr_line) % this.users.length;
-        let debug = `currently on round ${this.curr_line + 1}, state for user ${user}`;
-        let display = "";
-        if (this.curr_line > 0) {
-            display += `\nprevious line: ${JSON.stringify(this.stories[story_idx].getLine(this.curr_line - 1))}`;
-        }
-        return {debug, display};
+        return {
+            ended: this.ended,
+            round: this.ended ? this.curr_line : this.curr_line + 1,
+            totalRounds: this.rounds,
+            debug: "", 
+            prevLine: this.curr_line ? this.stories[story_idx].getLine(this.curr_line - 1) : null,
+            // waiting if user has already written line for this round
+            waiting: !this.ended && (this.stories[story_idx].length() > this.curr_line),
+        };
     }
 
     getStories(): Story[] {
