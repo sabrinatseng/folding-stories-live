@@ -1,12 +1,11 @@
+import { Line, UserState } from './types';
+
 export class Game {
     users: string[];
     stories: Story[];
 
-    // Track which story user 0 is on. 
-    // Can deduce what all users are on from there
-    user_0_story_idx: number;
-
     curr_line: number = 0;
+    ended: boolean = false;
 
     // Game settings
     num_lines: number;
@@ -14,8 +13,15 @@ export class Game {
     constructor(users: string[], num_lines: number) {
         this.users = users.slice();
         this.stories = Array.from(this.users, _ => new Story());
-        this.user_0_story_idx = 0;
         this.num_lines = num_lines;
+    }
+
+    gameEnded(): boolean {
+        return this.ended;
+    }
+
+    userInGame(user: string): boolean {
+        return this.users.includes(user);
     }
 
     checkEndTurn(): boolean {
@@ -27,42 +33,52 @@ export class Game {
     writeLine(user: string, line: string) {
         // write a line to the story corresponding to this user
         // also call nextTurn() if all lines have been written this turn
-        let user_idx = this.users.indexOf(user);
-        if (user_idx >= 0) {
-            let story_idx = (user_idx + this.user_0_story_idx) % this.users.length;
+        if (this.users.includes(user)) {
+            let user_idx = this.users.indexOf(user);
+            let story_idx = (user_idx + this.curr_line) % this.users.length;
 
-            this.stories[story_idx].writeLine(new Line(user, line));
+            this.stories[story_idx].writeLine({user, line});
 
             if (this.checkEndTurn()) this.nextTurn();
         }
     }
 
     nextTurn() {
-        // rotate the stories around, increment curr_line, etc
-        this.user_0_story_idx = (this.user_0_story_idx + 1) % this.users.length;
         this.curr_line++;
+        if (this.curr_line == this.num_lines) this.ended = true;
     }
 
-    getDisplayState(user: string): string | null {
+    getState(user: string): UserState {
         // get info to display for a particular user so that the
         // frontend can be updated
-        if (this.users.includes(user)) {
-            return `currently on round ${this.curr_line + 1}, state for user ${user}`;
+        let user_idx = this.users.indexOf(user);
+        let story_idx = (user_idx + this.curr_line) % this.users.length;
+        let debug = `currently on round ${this.curr_line + 1}, state for user ${user}`;
+        let display = "";
+        if (this.curr_line > 0) {
+            display += `\nprevious line: ${JSON.stringify(this.stories[story_idx].getLine(this.curr_line - 1))}`;
         }
-        return null;
+        return {debug, display};
+    }
+
+    getStories(): Story[] {
+        return this.stories;
+    }
+
+    getCurrRound(): number {
+        return this.curr_line + 1;
     }
 }
 
-export class Story {
+class Story {
     lines: Line[];
     constructor() {
         this.lines = [];
     }
 
-    prevLine(): Line {
-        // get the previous line of the story.
-        // for displaying during a game
-        return this.lines.length ? this.lines[this.lines.length - 1] : {user: "", line: ""};
+    getLine(idx: number): Line {
+        // assume idx is between 0 and this.lines.length
+        return this.lines[idx];
     }
 
     writeLine(line: Line) {
@@ -73,22 +89,12 @@ export class Story {
         return this.lines.length;
     }
 
+    getLines(): Line[] {
+        return this.lines;
+    }
+
     toString(): string {
         //TODO
         return "";
-    }
-}
-
-class Line {
-    line: string;
-    user: string;
-    constructor(user: string, line: string) {
-        this.line = line;
-        this.user = user;
-    }
-
-    toString(): string {
-        // TODO
-        return this.line;
     }
 }

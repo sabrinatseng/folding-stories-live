@@ -59,12 +59,16 @@ function notifyGameState(game) {
     if (game === null)
         return;
     console.log("emitting game state");
+    if (game.gameEnded())
+        console.log("game ended");
     var sockets = io.sockets.sockets;
     Object.values(sockets).forEach(function (socket) {
-        if (socket.username != null) {
-            var state = game.getDisplayState(socket.username);
-            if (state != null) {
-                socket.emit("game_state" /* GameState */, state);
+        if (socket.username != null && game.userInGame(socket.username)) {
+            if (game.gameEnded()) {
+                socket.emit("game_end" /* GameEnd */, JSON.stringify(game.getStories()));
+            }
+            else {
+                socket.emit("game_state" /* GameState */, JSON.stringify(game.getState(socket.username)));
             }
         }
     });

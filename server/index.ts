@@ -66,12 +66,15 @@ server.listen(PORT, () => {
 function notifyGameState(game: Game | null) {
     if (game === null) return;
     console.log("emitting game state");
+    if (game.gameEnded()) console.log("game ended");
     let sockets: { [id: string]: any } = io.sockets.sockets;
     Object.values(sockets).forEach(socket => {
-        if (socket.username != null) {
-            let state: string | null = game.getDisplayState(socket.username);
-            if (state != null) {
-                socket.emit(EventTypes.GameState, state);
+        if (socket.username != null && game.userInGame(socket.username)) {
+            if (game.gameEnded()) {
+                socket.emit(EventTypes.GameEnd, JSON.stringify(game.getStories()));
+            }
+            else {
+                socket.emit(EventTypes.GameState, JSON.stringify(game.getState(socket.username)));
             }
         } 
     });

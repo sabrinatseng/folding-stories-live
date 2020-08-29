@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
+    <title>Folding Stories Live</title>
   </head>
   <body>
     <p id="users">Current Users:</p>
@@ -13,6 +13,7 @@
     <p id="game_state">Game State:</p>
     <textarea id="input_line" rows="3" cols="100" placeholder="Write the next line of the story here"></textarea>
     <button onClick="writeLine()">Submit Line</button>
+    <p id="stories"></p>
 
     <script src="./socket.io/socket.io.js"></script>
     <script>
@@ -35,9 +36,17 @@
         document.getElementById("users").textContent = "Current Users: " + users;
       })
 
-      socket.on("game_state", (state) => {
-        console.log("game state: " + state);
-        document.getElementById("game_state").textContent = "Game State: " + state;
+      socket.on("game_state", (state_json) => {
+        let state = JSON.parse(state_json);
+        console.log("state: " + state.debug);
+        document.getElementById("game_state").textContent = state.display;
+      })
+
+      socket.on("game_end", (stories_json) => {
+        let stories = JSON.parse(stories_json);
+        console.log(stories);
+        let stories_lines = stories.map(story => story.lines.map(line => line.line).join("\n")).join("\n\n");
+        document.getElementById("stories").textContent = stories_lines;
       })
 
     </script>

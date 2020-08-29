@@ -1,14 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Story = exports.Game = void 0;
+exports.Game = void 0;
 var Game = /** @class */ (function () {
     function Game(users, num_lines) {
         this.curr_line = 0;
+        this.ended = false;
         this.users = users.slice();
         this.stories = Array.from(this.users, function (_) { return new Story(); });
-        this.user_0_story_idx = 0;
         this.num_lines = num_lines;
     }
+    Game.prototype.gameEnded = function () {
+        return this.ended;
+    };
+    Game.prototype.userInGame = function (user) {
+        return this.users.includes(user);
+    };
     Game.prototype.checkEndTurn = function () {
         var _this = this;
         // check the lengths of each story and if they are correct
@@ -18,26 +24,36 @@ var Game = /** @class */ (function () {
     Game.prototype.writeLine = function (user, line) {
         // write a line to the story corresponding to this user
         // also call nextTurn() if all lines have been written this turn
-        var user_idx = this.users.indexOf(user);
-        if (user_idx >= 0) {
-            var story_idx = (user_idx + this.user_0_story_idx) % this.users.length;
-            this.stories[story_idx].writeLine(new Line(user, line));
+        if (this.users.includes(user)) {
+            var user_idx = this.users.indexOf(user);
+            var story_idx = (user_idx + this.curr_line) % this.users.length;
+            this.stories[story_idx].writeLine({ user: user, line: line });
             if (this.checkEndTurn())
                 this.nextTurn();
         }
     };
     Game.prototype.nextTurn = function () {
-        // rotate the stories around, increment curr_line, etc
-        this.user_0_story_idx = (this.user_0_story_idx + 1) % this.users.length;
         this.curr_line++;
+        if (this.curr_line == this.num_lines)
+            this.ended = true;
     };
-    Game.prototype.getDisplayState = function (user) {
+    Game.prototype.getState = function (user) {
         // get info to display for a particular user so that the
         // frontend can be updated
-        if (this.users.includes(user)) {
-            return "currently on round " + (this.curr_line + 1) + ", state for user " + user;
+        var user_idx = this.users.indexOf(user);
+        var story_idx = (user_idx + this.curr_line) % this.users.length;
+        var debug = "currently on round " + (this.curr_line + 1) + ", state for user " + user;
+        var display = "";
+        if (this.curr_line > 0) {
+            display += "\nprevious line: " + JSON.stringify(this.stories[story_idx].getLine(this.curr_line - 1));
         }
-        return null;
+        return { debug: debug, display: display };
+    };
+    Game.prototype.getStories = function () {
+        return this.stories;
+    };
+    Game.prototype.getCurrRound = function () {
+        return this.curr_line + 1;
     };
     return Game;
 }());
@@ -46,10 +62,9 @@ var Story = /** @class */ (function () {
     function Story() {
         this.lines = [];
     }
-    Story.prototype.prevLine = function () {
-        // get the previous line of the story.
-        // for displaying during a game
-        return this.lines.length ? this.lines[this.lines.length - 1] : { user: "", line: "" };
+    Story.prototype.getLine = function (idx) {
+        // assume idx is between 0 and this.lines.length
+        return this.lines[idx];
     };
     Story.prototype.writeLine = function (line) {
         this.lines.push(line);
@@ -57,21 +72,12 @@ var Story = /** @class */ (function () {
     Story.prototype.length = function () {
         return this.lines.length;
     };
+    Story.prototype.getLines = function () {
+        return this.lines;
+    };
     Story.prototype.toString = function () {
         //TODO
         return "";
     };
     return Story;
-}());
-exports.Story = Story;
-var Line = /** @class */ (function () {
-    function Line(user, line) {
-        this.line = line;
-        this.user = user;
-    }
-    Line.prototype.toString = function () {
-        // TODO
-        return this.line;
-    };
-    return Line;
 }());
