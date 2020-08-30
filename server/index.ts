@@ -7,13 +7,13 @@ import { EventTypes } from './types';
 import { Game } from './game';
 
 const app = express();
-app.use(express.static(__dirname + "/client"));
+app.use(express.static("client"));
 
 let server = new http.Server(app);
 let io = socketio(server);
 
 app.get('/', (_req, res) => {
-    res.sendFile(path.resolve("./client/index.html"))
+    res.sendFile(path.resolve("index.html"))
 });
 
 // TODO use rooms

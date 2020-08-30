@@ -10,11 +10,11 @@ var socket_io_1 = __importDefault(require("socket.io"));
 var constants_1 = require("./config/constants");
 var game_1 = require("./game");
 var app = express_1.default();
-app.use(express_1.default.static(__dirname + "/client"));
+app.use(express_1.default.static("client"));
 var server = new http_1.default.Server(app);
 var io = socket_io_1.default(server);
 app.get('/', function (_req, res) {
-    res.sendFile(path_1.default.resolve("./client/index.html"));
+    res.sendFile(path_1.default.resolve("index.html"));
 });
 // TODO use rooms
 // also move this out to a db or something

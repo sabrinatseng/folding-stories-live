@@ -44,12 +44,8 @@ var Game = /** @class */ (function () {
         // frontend can be updated
         var user_idx = this.users.indexOf(user);
         var story_idx = (user_idx + this.curr_line) % this.users.length;
-        // let debug = `currently on round ${this.curr_line + 1}, state for user ${user}`;
-        var display = "";
-        if (this.curr_line > 0) {
-            display += "\nprevious line: " + JSON.stringify(this.stories[story_idx].getLine(this.curr_line - 1));
-        }
         return {
+            ended: this.ended,
             round: this.ended ? this.curr_line : this.curr_line + 1,
             totalRounds: this.rounds,
             debug: "",
